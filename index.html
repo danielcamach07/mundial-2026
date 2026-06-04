@@ -227,7 +227,7 @@ select{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.1e
 .gc-match{display:flex;align-items:center;gap:8px;padding:6px 12px;font-family:var(--cond);font-size:11px;font-weight:600;border-bottom:1px solid var(--line);color:var(--muted);cursor:pointer;transition:background .1s}
 .gc-match:last-child{border-bottom:none}
 .gc-match:hover{background:var(--ui2)}
-.gc-match .gct{font-family:var(--poster);font-weight:900;font-size:11px;color:var(--ink);min-width:38px;flex:none}
+.gc-match .gct{font-family:var(--poster);font-weight:900;font-size:11px;color:var(--ink);min-width:90px;flex:none}
 .gc-match .gcteams{flex:1;font-size:11px;color:var(--ink);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gc-match .gcsc{font-family:var(--poster);font-weight:900;font-size:12px;color:var(--orange);min-width:40px;text-align:right;flex:none}
 .gc-match .gc-live{font-size:8px;font-weight:900;letter-spacing:.1em;background:var(--coral);color:#fff;padding:1px 5px;border-radius:3px}
@@ -616,10 +616,11 @@ function renderGroups(){
     gm.forEach(m=>{
       const sc=state.scores[m.n],ls=liveState(m);
       const time=fmtTime(m.date);
+      const gcDate=new Intl.DateTimeFormat('es-MX',{day:'numeric',month:'short',timeZone:state.tz}).format(m.date).toUpperCase();
       let score='',badge='';
       if(ls==='live'&&sc){score=`${sc.home}–${sc.away}`;badge=`<span class="gc-live">VIVO</span>`;}
       else if(ls==='fin'&&sc){score=`${sc.home}–${sc.away}`;}
-      mrows+=`<div class="gc-match" data-n="${m.n}"><span class="gct">${time}</span><span class="gcteams">${fl(m.home)} ${m.home} vs ${m.away} ${fl(m.away)}</span>${badge}<span class="gcsc">${score}</span></div>`;
+      mrows+=`<div class="gc-match" data-n="${m.n}"><span class="gct">${gcDate} · ${time}</span><span class="gcteams">${fl(m.home)} ${m.home} vs ${m.away} ${fl(m.away)}</span>${badge}<span class="gcsc">${score}</span></div>`;
     });
     html+=`<div class="group-card"><div class="gc-head" style="background:${GCOLS[gi]}">GRUPO ${g}</div><div style="overflow-x:auto"><table class="stbl"><thead><tr><th class="tl">Equipo</th><th>Pts</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DIF</th></tr></thead><tbody>${rows}</tbody></table></div><div class="gc-matches">${mrows}</div></div>`;
   });
