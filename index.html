@@ -387,7 +387,7 @@ const VEN={'Estadio Ciudad de México':['Ciudad de México','MX'],'Estadio Guada
 const HOST={MX:'🇲🇽',CA:'🇨🇦',US:'🇺🇸'};
 const FLAG={'México':'🇲🇽','Sudáfrica':'🇿🇦','Corea del Sur':'🇰🇷','República Checa':'🇨🇿','Canadá':'🇨🇦','Bosnia y Herzegovina':'🇧🇦','Catar':'🇶🇦','Suiza':'🇨🇭','Brasil':'🇧🇷','Marruecos':'🇲🇦','Haití':'🇭🇹','Escocia':'🏴󠁧󠁢󠁳󠁣󠁴󠁿','Australia':'🇦🇺','Turquía':'🇹🇷','Alemania':'🇩🇪','Curazao':'🇨🇼','Costa de Marfil':'🇨🇮','Ecuador':'🇪🇨','Países Bajos':'🇳🇱','Japón':'🇯🇵','Suecia':'🇸🇪','Túnez':'🇹🇳','España':'🇪🇸','Cabo Verde':'🇨🇻','Arabia Saudí':'🇸🇦','Uruguay':'🇺🇾','Bélgica':'🇧🇪','Egipto':'🇪🇬','Irán':'🇮🇷','Nueva Zelanda':'🇳🇿','Francia':'🇫🇷','Senegal':'🇸🇳','Irak':'🇮🇶','Noruega':'🇳🇴','Argentina':'🇦🇷','Argelia':'🇩🇿','Austria':'🇦🇹','Jordania':'🇯🇴','Portugal':'🇵🇹','RD Congo':'🇨🇩','Uzbekistán':'🇺🇿','Colombia':'🇨🇴','Inglaterra':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Croacia':'🇭🇷','Ghana':'🇬🇭','Panamá':'🇵🇦','Estados Unidos':'🇺🇸','Paraguay':'🇵🇾'};
 function fl(n){return FLAG[n]||'🏳️'}
-const ESPN_TEAM_MAP={'Mexico':'México','South Africa':'Sudáfrica','Korea Republic':'Corea del Sur','Czechia':'República Checa','Czech Republic':'República Checa','Canada':'Canadá','Bosnia-Herzegovina':'Bosnia y Herzegovina','Bosnia and Herzegovina':'Bosnia y Herzegovina','Qatar':'Catar','Switzerland':'Suiza','Brazil':'Brasil','Morocco':'Marruecos','Haiti':'Haití','Scotland':'Escocia','Australia':'Australia','Turkey':'Turquía','Germany':'Alemania','Curacao':'Curazao',"Côte d'Ivoire":'Costa de Marfil','Ivory Coast':'Costa de Marfil','Ecuador':'Ecuador','Netherlands':'Países Bajos','Japan':'Japón','Sweden':'Suecia','Tunisia':'Túnez','Spain':'España','Cape Verde':'Cabo Verde','Saudi Arabia':'Arabia Saudí','Uruguay':'Uruguay','Belgium':'Bélgica','Egypt':'Egipto','Iran':'Irán','New Zealand':'Nueva Zelanda','France':'Francia','Senegal':'Senegal','Iraq':'Irak','Norway':'Noruega','Argentina':'Argentina','Algeria':'Argelia','Austria':'Austria','Jordan':'Jordania','Portugal':'Portugal','DR Congo':'RD Congo','Congo DR':'RD Congo','Uzbekistan':'Uzbekistán','Colombia':'Colombia','England':'Inglaterra','Croatia':'Croacia','Ghana':'Ghana','Panama':'Panamá','United States':'Estados Unidos','USA':'Estados Unidos','Paraguay':'Paraguay'};
+const ESPN_TEAM_MAP={'Mexico':'México','South Africa':'Sudáfrica','Korea Republic':'Corea del Sur','South Korea':'Corea del Sur','Czechia':'República Checa','Czech Republic':'República Checa','Ivory Coast':'Costa de Marfil','Cote d\'Ivoire':'Costa de Marfil','Bosnia-Herzegovina':'Bosnia y Herzegovina','Bosnia and Herzegovina':'Bosnia y Herzegovina','Canada':'Canadá','Bosnia-Herzegovina':'Bosnia y Herzegovina','Bosnia and Herzegovina':'Bosnia y Herzegovina','Qatar':'Catar','Switzerland':'Suiza','Brazil':'Brasil','Morocco':'Marruecos','Haiti':'Haití','Scotland':'Escocia','Australia':'Australia','Turkey':'Turquía','Germany':'Alemania','Curacao':'Curazao',"Côte d'Ivoire":'Costa de Marfil','Ivory Coast':'Costa de Marfil','Ecuador':'Ecuador','Netherlands':'Países Bajos','Japan':'Japón','Sweden':'Suecia','Tunisia':'Túnez','Spain':'España','Cape Verde':'Cabo Verde','Saudi Arabia':'Arabia Saudí','Uruguay':'Uruguay','Belgium':'Bélgica','Egypt':'Egipto','Iran':'Irán','New Zealand':'Nueva Zelanda','France':'Francia','Senegal':'Senegal','Iraq':'Irak','Norway':'Noruega','Argentina':'Argentina','Algeria':'Argelia','Austria':'Austria','Jordan':'Jordania','Portugal':'Portugal','DR Congo':'RD Congo','Congo DR':'RD Congo','Uzbekistan':'Uzbekistán','Colombia':'Colombia','England':'Inglaterra','Croatia':'Croacia','Ghana':'Ghana','Panama':'Panamá','United States':'Estados Unidos','USA':'Estados Unidos','Paraguay':'Paraguay'};
 const STAGE={group:{label:'Fase de grupos',short:'GRUPOS'},r32:{label:'Dieciseisavos de final',short:'16AVOS'},r16:{label:'Octavos de final',short:'OCTAVOS'},qf:{label:'Cuartos de final',short:'CUARTOS'},sf:{label:'Semifinales',short:'SEMIS'},third:{label:'3.er lugar',short:'3.ER LUGAR'},final:{label:'Gran Final',short:'FINAL'}};
 function phaseLabel(m){return m.stage==='group'?`GRUPO ${m.group}`:STAGE[m.stage].short}
 
@@ -519,7 +519,7 @@ function openDetail(n){
   const tzName=document.querySelector('#tzSel option:checked').textContent.trim();
   const timeStr=m.tbd?'Por confirmar':`${fmtTime(m.date)} · ${tzName}`;
   let sHtml='';
-  if(sc&&sc.scorers&&sc.scorers.length){const rows=sc.scorers.map(s=>`<div class="sg"><span class="smin">${s.minute}</span>⚽ <b>${s.name}</b><span class="steam">${s.team}</span></div>`).join('');sHtml=`<div class="m-scorers"><div class="sl">Goles</div>${rows}</div>`;}
+  if(sc&&sc.scorers&&sc.scorers.length){const rows=sc.scorers.map(s=>`<div class="sg"><span class="smin">${s.minute}</span>⚽ <b>${s.name}</b>${s.team?`<span class="steam">${fl(s.team)} ${s.team}</span>`:''}</div>`).join('');sHtml=`<div class="m-scorers"><div class="sl">Goles</div>${rows}</div>`;}
   
   modalEl.innerHTML=`<div class="m-head"><div class="x" id="closeX">✕</div><div class="m-stage">${st.label}${m.group?' · GRUPO '+m.group:''} · PARTIDO ${m.n}</div><div class="m-score">${side(m.home,m.tbd)}<div class="m-mid">${mid}<div class="mv">${m.tbd?'':'VS'}</div>${min}<span class="mst ${ls==='live'?'live':''}">${stTxt}</span></div>${side(m.away,m.tbd)}</div></div>${sHtml}<div class="m-body"><div class="brow"><div class="k">Fecha</div><div class="v">${dateLong.charAt(0).toUpperCase()+dateLong.slice(1)}</div></div><div class="brow"><div class="k">Hora</div><div class="v">${timeStr}</div></div><div class="brow"><div class="k">Sede</div><div class="v">${m.venue}<span class="sm">${m.city} ${HOST[m.cc]}</span></div></div>${m.tbd?`<div class="brow"><div class="k">Cruce</div><div class="v" style="opacity:.7">${m.slot}</div></div>`:''}</div><div class="m-actions"><button class="btn vix" id="vixBtn">▶ VER EN VIX</button><button class="btn" id="gcalBtn">📅 GOOGLE CAL</button><button class="btn ghost" id="icsOneBtn">↓ .ICS</button></div>`;
   scrim.classList.add('show');
@@ -569,9 +569,9 @@ async function fetchResults(){
       const st=ev.status?.type?.name||'';
       const isLive=st==='STATUS_IN_PROGRESS'||st==='STATUS_HALFTIME';
       const isFin=st==='STATUS_FINAL';
-      const scorers=(comp.details||[]).filter(d=>d.scoringPlay||d.type?.text==='Goal').map(d=>({
+      const scorers=(comp.details||[]).filter(d=>d.scoringPlay===true).map(d=>({
         name:d.athletesInvolved?.[0]?.displayName||'',
-        team:ESPN_TEAM_MAP[d.athletesInvolved?.[0]?.team?.displayName]||'',
+        team:ESPN_TEAM_MAP[d.team?.displayName]||d.team?.displayName||'',
         minute:d.clock?.displayValue||''
       }));
       state.scores[am.n]={home:parseInt(hc.score)||0,away:parseInt(ac.score)||0,status:isFin?'FINALIZADO':isLive?'EN VIVO':'PROGRAMADO',minute:ev.status?.displayClock||'',scorers};
@@ -666,8 +666,8 @@ function renderBracket(){
       const hW=sc&&ls==='fin'&&sc.home>sc.away,aW=sc&&ls==='fin'&&sc.away>sc.home;
       const hSc=(ls==='live'||ls==='fin')&&sc?`<span class="bc-sc">${sc.home}</span>`:'';
       const aSc=(ls==='live'||ls==='fin')&&sc?`<span class="bc-sc">${sc.away}</span>`:'';
-      t1=`<div class="bc-tm${hW?' win':''}">  ${fl(m.home)}<span class="bc-nm">${m.home}</span>${hSc}</div>`;
-      t2=`<div class="bc-vs">vs</div><div class="bc-tm${aW?' win':''}">  ${fl(m.away)}<span class="bc-nm">${m.away}</span>${aSc}</div>`;
+      t1=`<div class="bc-tm${hW?' win':''}}">${fl(m.home)}<span class="bc-nm">${m.home}</span>${hSc}</div>`;
+      t2=`<div class="bc-vs">vs</div><div class="bc-tm${aW?' win':''}">${fl(m.away)}<span class="bc-nm">${m.away}</span>${aSc}</div>`;
     }else{
       const p=m.slot.split(' vs ');
       t1=`<div class="bc-tm tbd"><span class="bc-nm">${p[0]||m.slot}</span></div>`;
@@ -677,7 +677,7 @@ function renderBracket(){
   }
   function bRound(ids,cls=''){
     const items=ids.map(byN);const paired=items.length>1;
-    return`<div class="b-round ${cls}">${items.map((m,i)=>`<div class="b-item ${paired?(i%2===0?'top':'bot'):''}">  ${bCard(m)}</div>`).join('')}</div>`;
+    return`<div class="b-round ${cls}">${items.map((m,i)=>`<div class="b-item ${paired?(i%2===0?'top':'bot'):''}}">${bCard(m)}</div>`).join('')}</div>`;
   }
   const fin=byN(104),trd=byN(103);
   const html=`
