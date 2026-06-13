@@ -310,7 +310,6 @@ select{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.1e
   <div id="tab-calendar" class="tab-panel show">
   <div class="toolbar">
     <button class="btn live" id="refreshBtn">⟳ Actualizar</button>
-    <button class="btn" onclick="setApiKey()">🔑 API Key</button>
     <label class="toggle" id="autoToggle"><span class="dot"></span> Auto-refresco</label>
     <button class="btn" id="themeBtn" onclick="toggleTheme()">🌙 Modo oscuro</button>
     <button class="btn" id="demoBtn" onclick="toggleDemo()">⚽ Demo en vivo</button>
@@ -356,7 +355,7 @@ select{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.1e
   <div id="list"></div>
 
   <div class="foot-note">
-    <b>Resultados en vivo.</b> Al pulsar <b>Actualizar</b> se obtienen los marcadores, goleadores y minutos desde <b>football-data.org</b> (API gratuita — regístrate en football-data.org para obtener tu clave y configúrala con <b>🔑 API Key</b>). <b>Auto-refresco</b> lo repite cada 60&nbsp;s. Con <b>Demo en vivo</b> puedes ver cómo se verían los datos.<br><br>
+    <b>Resultados en vivo.</b> Al pulsar <b>Actualizar</b> se obtienen los marcadores, goleadores y minutos desde <b>football-data.org</b>. <b>Auto-refresco</b> lo repite cada 60&nbsp;s. Con <b>Demo en vivo</b> puedes ver cómo se verían los datos.<br><br>
     <b>Fases:</b>
     <span><span class="dotk" style="background:var(--teal)"></span>Grupos</span> &nbsp;
     <span><span class="dotk" style="background:var(--navy)"></span>16avos</span> &nbsp;
@@ -417,21 +416,7 @@ function toggleTheme(){
 
 const state={tz:'America/Mexico_City',stage:'all',chip:'all',q:'',date:'all',auto:false,scores:{}};
 const LIVE_MS=150*60*1000;let timer=null;
-let _apiKey=localStorage.getItem('wc26_apikey')||'';
-function ensureApiKey(){
-  if(_apiKey)return _apiKey;
-  const k=prompt('Introduce tu API key de football-data.org (gratis en football-data.org):','');
-  if(k&&k.trim()){_apiKey=k.trim();localStorage.setItem('wc26_apikey',_apiKey);}
-  return _apiKey;
-}
-function setApiKey(){
-  const k=prompt('API key de football-data.org (déjalo en blanco para borrar):',_apiKey||'');
-  if(k===null)return;
-  _apiKey=k.trim();
-  if(_apiKey)localStorage.setItem('wc26_apikey',_apiKey);
-  else localStorage.removeItem('wc26_apikey');
-  alert(_apiKey?'API key guardada.':'API key borrada.');
-}
+const _apiKey='f39e136ed36a4a13a28158196012353f';
 function fmtDay(d){const s=new Intl.DateTimeFormat('es-MX',{weekday:'long',day:'numeric',month:'long',timeZone:state.tz}).format(d);return s.toUpperCase();}
 function fmtTime(d){return new Intl.DateTimeFormat('es-MX',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:state.tz}).format(d);}
 function dayKey(d){return new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:state.tz}).format(d);}
@@ -544,7 +529,7 @@ function openDetail(n){
   let sHtml='';
   if(sc&&sc.scorers&&sc.scorers.length){const rows=sc.scorers.map(s=>`<div class="sg"><span class="smin">${s.minute}</span>⚽ <b>${s.name}</b><span class="steam">${s.team}</span></div>`).join('');sHtml=`<div class="m-scorers"><div class="sl">Goles</div>${rows}</div>`;}
   const dm=m.n===1&&demoActive?`<span class="demo-badge" style="font-size:11px;padding:3px 8px">MODO DEMO</span>`:'';
-  modalEl.innerHTML=`<div class="m-head"><div class="x" id="closeX">✕</div><div class="m-stage">${st.label}${m.group?' · GRUPO '+m.group:''} · PARTIDO ${m.n}</div>${dm}<div class="m-score">${side(m.home,m.tbd)}<div class="m-mid">${mid}<div class="mv">${m.tbd?'':'VS'}</div>${min}<span class="mst ${ls==='live'?'live':''}">  ${stTxt}</span></div>${side(m.away,m.tbd)}</div></div>${sHtml}<div class="m-body"><div class="brow"><div class="k">Fecha</div><div class="v">${dateLong.charAt(0).toUpperCase()+dateLong.slice(1)}</div></div><div class="brow"><div class="k">Hora</div><div class="v">${timeStr}</div></div><div class="brow"><div class="k">Sede</div><div class="v">${m.venue}<span class="sm">${m.city} ${HOST[m.cc]}</span></div></div>${m.tbd?`<div class="brow"><div class="k">Cruce</div><div class="v" style="opacity:.7">${m.slot}</div></div>`:''}</div><div class="m-actions"><button class="btn vix" id="vixBtn">▶ VER EN VIX</button><button class="btn" id="gcalBtn">📅 GOOGLE CAL</button><button class="btn ghost" id="icsOneBtn">↓ .ICS</button></div>`;
+  modalEl.innerHTML=`<div class="m-head"><div class="x" id="closeX">✕</div><div class="m-stage">${st.label}${m.group?' · GRUPO '+m.group:''} · PARTIDO ${m.n}</div>${dm}<div class="m-score">${side(m.home,m.tbd)}<div class="m-mid">${mid}<div class="mv">${m.tbd?'':'VS'}</div>${min}<span class="mst ${ls==='live'?'live':''}}">${stTxt}</span></div>${side(m.away,m.tbd)}</div></div>${sHtml}<div class="m-body"><div class="brow"><div class="k">Fecha</div><div class="v">${dateLong.charAt(0).toUpperCase()+dateLong.slice(1)}</div></div><div class="brow"><div class="k">Hora</div><div class="v">${timeStr}</div></div><div class="brow"><div class="k">Sede</div><div class="v">${m.venue}<span class="sm">${m.city} ${HOST[m.cc]}</span></div></div>${m.tbd?`<div class="brow"><div class="k">Cruce</div><div class="v" style="opacity:.7">${m.slot}</div></div>`:''}</div><div class="m-actions"><button class="btn vix" id="vixBtn">▶ VER EN VIX</button><button class="btn" id="gcalBtn">📅 GOOGLE CAL</button><button class="btn ghost" id="icsOneBtn">↓ .ICS</button></div>`;
   scrim.classList.add('show');
   document.getElementById('closeX').onclick=closeDetail;
   document.getElementById('vixBtn').onclick=()=>window.open('https://www.primevideo.com/channel/5dd031d5-45ef-437c-8014-e670e79ef05c?jic=16%7CCgNhbGwSA2FsbA%3D%3D','_blank','noopener');
@@ -572,11 +557,10 @@ function gcalLink(m){const base='https://calendar.google.com/calendar/render?act
 const statusLine=document.getElementById('statusLine'),refreshBtn=document.getElementById('refreshBtn');
 function setStatus(msg,err){statusLine.textContent=msg;statusLine.classList.toggle('err',!!err);}
 async function fetchResults(){
-  const key=ensureApiKey();if(!key){setStatus('Introduce tu API key de football-data.org. Regístrate gratis en football-data.org',true);return;}
   setStatus('ACTUALIZANDO RESULTADOS…');refreshBtn.disabled=true;
   try{
-    const res=await fetch('https://api.football-data.org/v4/competitions/WC/matches',{headers:{'X-Auth-Token':key}});
-    if(!res.ok){if(res.status===401||res.status===403){_apiKey='';localStorage.removeItem('wc26_apikey');throw new Error('API KEY INVÁLIDA — revisa tu clave en football-data.org');}throw new Error(`ERROR HTTP ${res.status}`);}
+    const res=await fetch('https://api.football-data.org/v4/competitions/WC/matches',{headers:{'X-Auth-Token':_apiKey}});
+    if(!res.ok){throw new Error(`ERROR HTTP ${res.status}`);}
     const data=await res.json();let updated=0;
     for(const m of data.matches||[]){
       if(m.status==='SCHEDULED'||m.status==='TIMED')continue;
@@ -728,7 +712,7 @@ function renderBracket(){
 }
 
 render();
-if(MATCHES.some(m=>!m.tbd&&Date.now()>=m.date.getTime()-60000)&&_apiKey)fetchResults();
+if(MATCHES.some(m=>!m.tbd&&Date.now()>=m.date.getTime()-60000))fetchResults();
 </script>
 </body>
 </html>
