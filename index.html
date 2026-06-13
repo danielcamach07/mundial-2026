@@ -310,7 +310,6 @@ select{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.1e
   <div id="tab-calendar" class="tab-panel show">
   <div class="toolbar">
     <button class="btn live" id="refreshBtn">⟳ Actualizar</button>
-    <button class="btn" onclick="setApiKey()">🔑 API Key</button>
     <label class="toggle" id="autoToggle"><span class="dot"></span> Auto-refresco</label>
     <button class="btn" id="themeBtn" onclick="toggleTheme()">🌙 Modo oscuro</button>
     <button class="btn" id="demoBtn" onclick="toggleDemo()">⚽ Demo en vivo</button>
@@ -356,7 +355,7 @@ select{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.1e
   <div id="list"></div>
 
   <div class="foot-note">
-    <b>Marcador en vivo.</b> Al pulsar <b>Actualizar</b> se busca en la web el marcador, los goleadores y el minuto de cada gol. <b>Auto-refresco</b> lo repite cada 60&nbsp;s. Con <b>Demo en vivo</b> puedes ver cómo se verían los datos en tiempo real.<br><br>
+    <b>Resultados en vivo.</b> Al pulsar <b>Actualizar</b> se obtienen los marcadores, goleadores y minutos desde <b>football-data.org</b>. <b>Auto-refresco</b> lo repite cada 60&nbsp;s. Con <b>Demo en vivo</b> puedes ver cómo se verían los datos.<br><br>
     <b>Fases:</b>
     <span><span class="dotk" style="background:var(--teal)"></span>Grupos</span> &nbsp;
     <span><span class="dotk" style="background:var(--navy)"></span>16avos</span> &nbsp;
@@ -389,6 +388,7 @@ const VEN={'Estadio Ciudad de México':['Ciudad de México','MX'],'Estadio Guada
 const HOST={MX:'🇲🇽',CA:'🇨🇦',US:'🇺🇸'};
 const FLAG={'México':'🇲🇽','Sudáfrica':'🇿🇦','Corea del Sur':'🇰🇷','República Checa':'🇨🇿','Canadá':'🇨🇦','Bosnia y Herzegovina':'🇧🇦','Catar':'🇶🇦','Suiza':'🇨🇭','Brasil':'🇧🇷','Marruecos':'🇲🇦','Haití':'🇭🇹','Escocia':'🏴󠁧󠁢󠁳󠁣󠁴󠁿','Australia':'🇦🇺','Turquía':'🇹🇷','Alemania':'🇩🇪','Curazao':'🇨🇼','Costa de Marfil':'🇨🇮','Ecuador':'🇪🇨','Países Bajos':'🇳🇱','Japón':'🇯🇵','Suecia':'🇸🇪','Túnez':'🇹🇳','España':'🇪🇸','Cabo Verde':'🇨🇻','Arabia Saudí':'🇸🇦','Uruguay':'🇺🇾','Bélgica':'🇧🇪','Egipto':'🇪🇬','Irán':'🇮🇷','Nueva Zelanda':'🇳🇿','Francia':'🇫🇷','Senegal':'🇸🇳','Irak':'🇮🇶','Noruega':'🇳🇴','Argentina':'🇦🇷','Argelia':'🇩🇿','Austria':'🇦🇹','Jordania':'🇯🇴','Portugal':'🇵🇹','RD Congo':'🇨🇩','Uzbekistán':'🇺🇿','Colombia':'🇨🇴','Inglaterra':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Croacia':'🇭🇷','Ghana':'🇬🇭','Panamá':'🇵🇦','Estados Unidos':'🇺🇸','Paraguay':'🇵🇾'};
 function fl(n){return FLAG[n]||'🏳️'}
+const FD_TEAM_MAP={'Mexico':'México','South Africa':'Sudáfrica','Korea Republic':'Corea del Sur','Czechia':'República Checa','Czech Republic':'República Checa','Canada':'Canadá','Bosnia and Herzegovina':'Bosnia y Herzegovina','Qatar':'Catar','Switzerland':'Suiza','Brazil':'Brasil','Morocco':'Marruecos','Haiti':'Haití','Scotland':'Escocia','Australia':'Australia','Turkey':'Turquía','Curaçao':'Curazao','Curacao':'Curazao',"Côte d'Ivoire":'Costa de Marfil','Ivory Coast':'Costa de Marfil','Ecuador':'Ecuador','Netherlands':'Países Bajos','Japan':'Japón','Sweden':'Suecia','Tunisia':'Túnez','Spain':'España','Cape Verde':'Cabo Verde','Saudi Arabia':'Arabia Saudí','Uruguay':'Uruguay','Belgium':'Bélgica','Egypt':'Egipto','Iran':'Irán','Islamic Republic of Iran':'Irán','New Zealand':'Nueva Zelanda','France':'Francia','Senegal':'Senegal','Iraq':'Irak','Norway':'Noruega','Argentina':'Argentina','Algeria':'Argelia','Austria':'Austria','Jordan':'Jordania','Portugal':'Portugal','DR Congo':'RD Congo','Democratic Republic of the Congo':'RD Congo','Congo DR':'RD Congo','Uzbekistan':'Uzbekistán','Colombia':'Colombia','England':'Inglaterra','Croatia':'Croacia','Ghana':'Ghana','Panama':'Panamá','United States':'Estados Unidos','USA':'Estados Unidos','Paraguay':'Paraguay'};
 const STAGE={group:{label:'Fase de grupos',short:'GRUPOS'},r32:{label:'Dieciseisavos de final',short:'16AVOS'},r16:{label:'Octavos de final',short:'OCTAVOS'},qf:{label:'Cuartos de final',short:'CUARTOS'},sf:{label:'Semifinales',short:'SEMIS'},third:{label:'3.er lugar',short:'3.ER LUGAR'},final:{label:'Gran Final',short:'FINAL'}};
 function phaseLabel(m){return m.stage==='group'?`GRUPO ${m.group}`:STAGE[m.stage].short}
 
@@ -416,21 +416,7 @@ function toggleTheme(){
 
 const state={tz:'America/Mexico_City',stage:'all',chip:'all',q:'',date:'all',auto:false,scores:{}};
 const LIVE_MS=150*60*1000;let timer=null;
-let _apiKey=localStorage.getItem('wc26_apikey')||'';
-function ensureApiKey(){
-  if(_apiKey)return _apiKey;
-  const k=prompt('Introduce tu API key de Anthropic para obtener marcadores en vivo:','');
-  if(k&&k.trim()){_apiKey=k.trim();localStorage.setItem('wc26_apikey',_apiKey);}
-  return _apiKey;
-}
-function setApiKey(){
-  const k=prompt('API key de Anthropic (déjalo en blanco para borrar):',_apiKey||'');
-  if(k===null)return;
-  _apiKey=k.trim();
-  if(_apiKey)localStorage.setItem('wc26_apikey',_apiKey);
-  else localStorage.removeItem('wc26_apikey');
-  alert(_apiKey?'API key guardada.':'API key borrada.');
-}
+const _apiKey='f39e136ed36a4a13a28158196012353f';
 function fmtDay(d){const s=new Intl.DateTimeFormat('es-MX',{weekday:'long',day:'numeric',month:'long',timeZone:state.tz}).format(d);return s.toUpperCase();}
 function fmtTime(d){return new Intl.DateTimeFormat('es-MX',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:state.tz}).format(d);}
 function dayKey(d){return new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:state.tz}).format(d);}
@@ -563,29 +549,37 @@ function utcStamp(d){return d.getUTCFullYear()+pad(d.getUTCMonth()+1)+pad(d.getU
 function dayStamp(d){return new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'America/Mexico_City'}).format(d).replace(/-/g,'');}
 function nextDay(s){const y=+s.slice(0,4),mo=+s.slice(4,6)-1,da=+s.slice(6,8);const d=new Date(Date.UTC(y,mo,da));d.setUTCDate(d.getUTCDate()+1);return d.getUTCFullYear()+pad(d.getUTCMonth()+1)+pad(d.getUTCDate());}
 function title(m){if(m.tbd)return`⚽ Copa Mundial 2026 · ${STAGE[m.stage].label} (Partido ${m.n})`;return`⚽ ${fl(m.home)} ${m.home} vs ${fl(m.away)} ${m.away} · Copa Mundial 2026`;}
-function descICS(m){if(m.tbd)return`${STAGE[m.stage].label} · Partido ${m.n}\nCruce: ${m.slot}\nHorario por confirmar\nSede: ${m.venue}, ${m.city}\nViX Premium: https://www.primevideo.com/channel/5dd031d5-45ef-437c-8014-e670e79ef05c?jic=16%7CCgNhbGwSA2FsbA%3D%3D`;return`${STAGE[m.stage].label}${m.group?' · Grupo '+m.group:''} · Partido ${m.n}\n${fl(m.home)} ${m.home} vs ${fl(m.away)} ${m.away}\nSede: ${m.venue}, ${m.city}\nViX Premium: https://www.primevideo.com/channel/5dd031d5-45ef-437c-8014-e670e79ef05c?jic=16%7CCgNhbGwSA2FsbA%3D%3D`;}
+function descICS(m){if(m.tbd)return`${STAGE[m.stage].label} · Partido ${m.n}\\nCruce: ${m.slot}\\nHorario por confirmar\\nSede: ${m.venue}, ${m.city}\\nViX Premium: https://www.primevideo.com/channel/5dd031d5-45ef-437c-8014-e670e79ef05c?jic=16%7CCgNhbGwSA2FsbA%3D%3D`;return`${STAGE[m.stage].label}${m.group?' · Grupo '+m.group:''} · Partido ${m.n}\\n${fl(m.home)} ${m.home} vs ${fl(m.away)} ${m.away}\\nSede: ${m.venue}, ${m.city}\\nViX Premium: https://www.primevideo.com/channel/5dd031d5-45ef-437c-8014-e670e79ef05c?jic=16%7CCgNhbGwSA2FsbA%3D%3D`;}
 function vevent(m){const uid=`m2026-${m.n}@mundial`;let dt;if(m.tbd){const ds=dayStamp(m.date);dt=`DTSTART;VALUE=DATE:${ds}\nDTEND;VALUE=DATE:${nextDay(ds)}`;}else{const end=new Date(m.date.getTime()+115*60000);dt=`DTSTART:${utcStamp(m.date)}\nDTEND:${utcStamp(end)}`;}return['BEGIN:VEVENT','UID:'+uid,'DTSTAMP:'+utcStamp(new Date()),dt,'SUMMARY:'+title(m).replace(/,/g,'\\,'),'LOCATION:'+(m.venue+', '+m.city).replace(/,/g,'\\,'),'DESCRIPTION:'+descICS(m),'END:VEVENT'].join('\n');}
 function downloadICS(arr,fname){const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Mundial2026//Calendario//ES','CALSCALE:GREGORIAN','X-WR-CALNAME:Mundial 2026',...arr.map(vevent),'END:VCALENDAR'].join('\n');const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(a.href);}
 function gcalLink(m){const base='https://calendar.google.com/calendar/render?action=TEMPLATE';let dates;if(m.tbd){const ds=dayStamp(m.date);dates=`${ds}/${nextDay(ds)}`;}else{const end=new Date(m.date.getTime()+115*60000);dates=`${utcStamp(m.date)}/${utcStamp(end)}`;}const p=new URLSearchParams({text:title(m),dates,details:descICS(m).replace(/\\n/g,'\n'),location:`${m.venue}, ${m.city}`});return base+'&'+p.toString();}
 
 const statusLine=document.getElementById('statusLine'),refreshBtn=document.getElementById('refreshBtn');
 function setStatus(msg,err){statusLine.textContent=msg;statusLine.classList.toggle('err',!!err);}
-async function pollLive(){
-  const live=pollable();if(!live.length){setStatus('NO HAY PARTIDOS EN VIVO AHORA.');return;}
-  setStatus('ACTUALIZANDO MARCADORES EN VIVO…');refreshBtn.disabled=true;
+async function fetchResults(){
+  setStatus('ACTUALIZANDO RESULTADOS…');refreshBtn.disabled=true;
   try{
-    const lst=live.map(m=>`id ${m.n}: ${m.home} vs ${m.away}`).join('\n');
-    const prompt=`Eres un servicio de marcadores en vivo de la Copa Mundial FIFA 2026. Busca en la web el marcador actual, goleadores y el minuto de cada gol. Responde ÚNICAMENTE con arreglo JSON válido, sin markdown. Cada objeto: {"id": number, "home": number, "away": number, "status": "EN VIVO"|"FINALIZADO"|"PROGRAMADO", "minute": string, "scorers": [{"name": string, "team": string, "minute": string}]}. Si no hallas datos: goles 0, status "PROGRAMADO", scorers [].\nPartidos:\n${lst}`;
-    const key=ensureApiKey();if(!key){setStatus('Necesitas una API key de Anthropic. Usa el botón "🔑 API Key" para configurarla.',true);return;}
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1200,messages:[{role:'user',content:prompt}],tools:[{type:'web_search_20250305',name:'web_search'}]})});
-    const data=await res.json();const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
-    const a=text.indexOf('['),b=text.lastIndexOf(']');if(a<0||b<0)throw new Error();
-    const arr=JSON.parse(text.slice(a,b+1));arr.forEach(o=>{if(o&&o.id!=null)state.scores[o.id]={home:o.home,away:o.away,status:o.status,minute:o.minute||'',scorers:o.scorers||[]};});
+    const res=await fetch('https://api.football-data.org/v4/competitions/WC/matches',{headers:{'X-Auth-Token':_apiKey}});
+    if(!res.ok){throw new Error(`ERROR HTTP ${res.status}`);}
+    const data=await res.json();let updated=0;
+    for(const m of data.matches||[]){
+      if(m.status==='SCHEDULED'||m.status==='TIMED')continue;
+      const home=FD_TEAM_MAP[m.homeTeam.name]||m.homeTeam.shortName||m.homeTeam.name;
+      const away=FD_TEAM_MAP[m.awayTeam.name]||m.awayTeam.shortName||m.awayTeam.name;
+      const am=MATCHES.find(x=>!x.tbd&&x.home===home&&x.away===away);
+      if(!am)continue;
+      const sc=m.score?.fullTime||{};
+      const isLive=m.status==='IN_PLAY'||m.status==='PAUSED';
+      const isFin=m.status==='FINISHED';
+      const scorers=(m.goals||[]).map(g=>({name:g.scorer?.name||'',team:FD_TEAM_MAP[g.team?.name]||g.team?.name||'',minute:g.minute!=null?`${g.minute}${g.injuryTime?'+'+g.injuryTime:''}'`:''}));
+      state.scores[am.n]={home:sc.home??0,away:sc.away??0,status:isFin?'FINALIZADO':isLive?'EN VIVO':'PROGRAMADO',minute:m.minute?`${m.minute}'`:'',scorers};
+      updated++;
+    }
     const t=new Intl.DateTimeFormat('es-MX',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:state.tz}).format(new Date());
-    setStatus(`ACTUALIZADO A LAS ${t} · ${live.length} PARTIDO(S) EN JUEGO`);render();if(activeTab==='groups')renderGroups();if(activeTab==='bracket')renderBracket();
-  }catch(e){setStatus('NO SE PUDO ACTUALIZAR. INTÉNTALO DE NUEVO.',true);}finally{refreshBtn.disabled=false;}
+    setStatus(`ACTUALIZADO A LAS ${t} · ${updated} RESULTADO(S)`);render();if(activeTab==='groups')renderGroups();if(activeTab==='bracket')renderBracket();
+  }catch(e){setStatus(`NO SE PUDO ACTUALIZAR: ${e.message}`,true);}finally{refreshBtn.disabled=false;}
 }
-refreshBtn.addEventListener('click',pollLive);
+refreshBtn.addEventListener('click',fetchResults);
 document.getElementById('icsBtn').addEventListener('click',()=>{const arr=MATCHES.filter(passes);downloadICS(arr,arr.length===104?'mundial-2026-completo.ics':'mundial-2026-seleccion.ics');});
 document.getElementById('helpBtn').addEventListener('click',openHelp);
 document.getElementById('tzSel').addEventListener('change',e=>{state.tz=e.target.value;render();});
@@ -594,7 +588,7 @@ document.getElementById('dateSel').addEventListener('change',e=>{state.date=e.ta
 document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value.trim();render();});
 document.getElementById('chips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');state.chip=c.dataset.g;render();});
 const autoToggle=document.getElementById('autoToggle');
-autoToggle.addEventListener('click',()=>{state.auto=!state.auto;autoToggle.classList.toggle('on',state.auto);if(timer){clearInterval(timer);timer=null;}if(state.auto){pollLive();timer=setInterval(()=>{if(pollable().length)pollLive();},60000);}});
+autoToggle.addEventListener('click',()=>{state.auto=!state.auto;autoToggle.classList.toggle('on',state.auto);if(timer){clearInterval(timer);timer=null;}if(state.auto){fetchResults();timer=setInterval(fetchResults,60000);}});
 
 // ── TABS ──
 let activeTab='calendar';
@@ -670,8 +664,8 @@ function renderBracket(){
       const hW=sc&&ls==='fin'&&sc.home>sc.away,aW=sc&&ls==='fin'&&sc.away>sc.home;
       const hSc=(ls==='live'||ls==='fin')&&sc?`<span class="bc-sc">${sc.home}</span>`:'';
       const aSc=(ls==='live'||ls==='fin')&&sc?`<span class="bc-sc">${sc.away}</span>`:'';
-      t1=`<div class="bc-tm${hW?' win':''}">​${fl(m.home)}<span class="bc-nm">${m.home}</span>${hSc}</div>`;
-      t2=`<div class="bc-vs">vs</div><div class="bc-tm${aW?' win':''}">​${fl(m.away)}<span class="bc-nm">${m.away}</span>${aSc}</div>`;
+      t1=`<div class="bc-tm${hW?' win':''}">  ${fl(m.home)}<span class="bc-nm">${m.home}</span>${hSc}</div>`;
+      t2=`<div class="bc-vs">vs</div><div class="bc-tm${aW?' win':''}">  ${fl(m.away)}<span class="bc-nm">${m.away}</span>${aSc}</div>`;
     }else{
       const p=m.slot.split(' vs ');
       t1=`<div class="bc-tm tbd"><span class="bc-nm">${p[0]||m.slot}</span></div>`;
@@ -681,7 +675,7 @@ function renderBracket(){
   }
   function bRound(ids,cls=''){
     const items=ids.map(byN);const paired=items.length>1;
-    return`<div class="b-round ${cls}">${items.map((m,i)=>`<div class="b-item ${paired?(i%2===0?'top':'bot'):''}">​${bCard(m)}</div>`).join('')}</div>`;
+    return`<div class="b-round ${cls}">${items.map((m,i)=>`<div class="b-item ${paired?(i%2===0?'top':'bot'):''}">  ${bCard(m)}</div>`).join('')}</div>`;
   }
   const fin=byN(104),trd=byN(103);
   const html=`
@@ -718,6 +712,7 @@ function renderBracket(){
 }
 
 render();
+if(MATCHES.some(m=>!m.tbd&&Date.now()>=m.date.getTime()-60000))fetchResults();
 </script>
 </body>
 </html>
