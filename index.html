@@ -310,6 +310,7 @@ select{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.1e
   <div id="tab-calendar" class="tab-panel show">
   <div class="toolbar">
     <button class="btn live" id="refreshBtn">⟳ Actualizar</button>
+    <button class="btn" onclick="setApiKey()">🔑 API Key</button>
     <label class="toggle" id="autoToggle"><span class="dot"></span> Auto-refresco</label>
     <button class="btn" id="themeBtn" onclick="toggleTheme()">🌙 Modo oscuro</button>
     <button class="btn" id="demoBtn" onclick="toggleDemo()">⚽ Demo en vivo</button>
@@ -415,6 +416,21 @@ function toggleTheme(){
 
 const state={tz:'America/Mexico_City',stage:'all',chip:'all',q:'',date:'all',auto:false,scores:{}};
 const LIVE_MS=150*60*1000;let timer=null;
+let _apiKey=localStorage.getItem('wc26_apikey')||'';
+function ensureApiKey(){
+  if(_apiKey)return _apiKey;
+  const k=prompt('Introduce tu API key de Anthropic para obtener marcadores en vivo:','');
+  if(k&&k.trim()){_apiKey=k.trim();localStorage.setItem('wc26_apikey',_apiKey);}
+  return _apiKey;
+}
+function setApiKey(){
+  const k=prompt('API key de Anthropic (déjalo en blanco para borrar):',_apiKey||'');
+  if(k===null)return;
+  _apiKey=k.trim();
+  if(_apiKey)localStorage.setItem('wc26_apikey',_apiKey);
+  else localStorage.removeItem('wc26_apikey');
+  alert(_apiKey?'API key guardada.':'API key borrada.');
+}
 function fmtDay(d){const s=new Intl.DateTimeFormat('es-MX',{weekday:'long',day:'numeric',month:'long',timeZone:state.tz}).format(d);return s.toUpperCase();}
 function fmtTime(d){return new Intl.DateTimeFormat('es-MX',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:state.tz}).format(d);}
 function dayKey(d){return new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:state.tz}).format(d);}
@@ -423,7 +439,18 @@ function liveState(m){
   if(sc&&sc.status==='EN VIVO')return'live';if(sc&&sc.status==='FINALIZADO')return'fin';
   const now=Date.now(),t=m.date.getTime();if(now<t)return'soon';if(now<=t+LIVE_MS)return'live';return'fin';
 }
-function pollable(){const now=Date.now();return MATCHES.filter(m=>!m.tbd&&now>=m.date.getTime()-60000&&now<=m.date.getTime()+LIVE_MS);}
+function pollable(){
+  const now=Date.now();
+  const weekAgo=now-7*24*60*60*1000;
+  return MATCHES.filter(m=>{
+    if(m.tbd)return false;
+    const t=m.date.getTime();
+    if(now<t-60000)return false;      // not started yet
+    if(t<weekAgo)return false;        // too old
+    if(now<=t+LIVE_MS)return true;    // currently live window
+    return !state.scores[m.n];        // past but missing score
+  });
+}
 (function buildDates(){
   const sel=document.getElementById('dateSel');const seen=new Set();
   MATCHES.slice().sort((a,b)=>a.date-b.date).forEach(m=>{
@@ -536,7 +563,7 @@ function utcStamp(d){return d.getUTCFullYear()+pad(d.getUTCMonth()+1)+pad(d.getU
 function dayStamp(d){return new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'America/Mexico_City'}).format(d).replace(/-/g,'');}
 function nextDay(s){const y=+s.slice(0,4),mo=+s.slice(4,6)-1,da=+s.slice(6,8);const d=new Date(Date.UTC(y,mo,da));d.setUTCDate(d.getUTCDate()+1);return d.getUTCFullYear()+pad(d.getUTCMonth()+1)+pad(d.getUTCDate());}
 function title(m){if(m.tbd)return`⚽ Copa Mundial 2026 · ${STAGE[m.stage].label} (Partido ${m.n})`;return`⚽ ${fl(m.home)} ${m.home} vs ${fl(m.away)} ${m.away} · Copa Mundial 2026`;}
-function descICS(m){if(m.tbd)return`${STAGE[m.stage].label} · Partido ${m.n}\\nCruce: ${m.slot}\\nHorario por confirmar\\nSede: ${m.venue}, ${m.city}\\nViX Premium: https://www.primevideo.com/channel/5dd031d5-45ef-437c-8014-e670e79ef05c?jic=16%7CCgNhbGwSA2FsbA%3D%3D`;return`${STAGE[m.stage].label}${m.group?' · Grupo '+m.group:''} · Partido ${m.n}\\n${fl(m.home)} ${m.home} vs ${fl(m.away)} ${m.away}\\nSede: ${m.venue}, ${m.city}\\nViX Premium: https://www.primevideo.com/channel/5dd031d5-45ef-437c-8014-e670e79ef05c?jic=16%7CCgNhbGwSA2FsbA%3D%3D`;}
+function descICS(m){if(m.tbd)return`${STAGE[m.stage].label} · Partido ${m.n}\nCruce: ${m.slot}\nHorario por confirmar\nSede: ${m.venue}, ${m.city}\nViX Premium: https://www.primevideo.com/channel/5dd031d5-45ef-437c-8014-e670e79ef05c?jic=16%7CCgNhbGwSA2FsbA%3D%3D`;return`${STAGE[m.stage].label}${m.group?' · Grupo '+m.group:''} · Partido ${m.n}\n${fl(m.home)} ${m.home} vs ${fl(m.away)} ${m.away}\nSede: ${m.venue}, ${m.city}\nViX Premium: https://www.primevideo.com/channel/5dd031d5-45ef-437c-8014-e670e79ef05c?jic=16%7CCgNhbGwSA2FsbA%3D%3D`;}
 function vevent(m){const uid=`m2026-${m.n}@mundial`;let dt;if(m.tbd){const ds=dayStamp(m.date);dt=`DTSTART;VALUE=DATE:${ds}\nDTEND;VALUE=DATE:${nextDay(ds)}`;}else{const end=new Date(m.date.getTime()+115*60000);dt=`DTSTART:${utcStamp(m.date)}\nDTEND:${utcStamp(end)}`;}return['BEGIN:VEVENT','UID:'+uid,'DTSTAMP:'+utcStamp(new Date()),dt,'SUMMARY:'+title(m).replace(/,/g,'\\,'),'LOCATION:'+(m.venue+', '+m.city).replace(/,/g,'\\,'),'DESCRIPTION:'+descICS(m),'END:VEVENT'].join('\n');}
 function downloadICS(arr,fname){const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Mundial2026//Calendario//ES','CALSCALE:GREGORIAN','X-WR-CALNAME:Mundial 2026',...arr.map(vevent),'END:VCALENDAR'].join('\n');const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(a.href);}
 function gcalLink(m){const base='https://calendar.google.com/calendar/render?action=TEMPLATE';let dates;if(m.tbd){const ds=dayStamp(m.date);dates=`${ds}/${nextDay(ds)}`;}else{const end=new Date(m.date.getTime()+115*60000);dates=`${utcStamp(m.date)}/${utcStamp(end)}`;}const p=new URLSearchParams({text:title(m),dates,details:descICS(m).replace(/\\n/g,'\n'),location:`${m.venue}, ${m.city}`});return base+'&'+p.toString();}
@@ -549,7 +576,8 @@ async function pollLive(){
   try{
     const lst=live.map(m=>`id ${m.n}: ${m.home} vs ${m.away}`).join('\n');
     const prompt=`Eres un servicio de marcadores en vivo de la Copa Mundial FIFA 2026. Busca en la web el marcador actual, goleadores y el minuto de cada gol. Responde ÚNICAMENTE con arreglo JSON válido, sin markdown. Cada objeto: {"id": number, "home": number, "away": number, "status": "EN VIVO"|"FINALIZADO"|"PROGRAMADO", "minute": string, "scorers": [{"name": string, "team": string, "minute": string}]}. Si no hallas datos: goles 0, status "PROGRAMADO", scorers [].\nPartidos:\n${lst}`;
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:prompt}],tools:[{type:'web_search_20250305',name:'web_search'}]})});
+    const key=ensureApiKey();if(!key){setStatus('Necesitas una API key de Anthropic. Usa el botón "🔑 API Key" para configurarla.',true);return;}
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1200,messages:[{role:'user',content:prompt}],tools:[{type:'web_search_20250305',name:'web_search'}]})});
     const data=await res.json();const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
     const a=text.indexOf('['),b=text.lastIndexOf(']');if(a<0||b<0)throw new Error();
     const arr=JSON.parse(text.slice(a,b+1));arr.forEach(o=>{if(o&&o.id!=null)state.scores[o.id]={home:o.home,away:o.away,status:o.status,minute:o.minute||'',scorers:o.scorers||[]};});
@@ -642,8 +670,8 @@ function renderBracket(){
       const hW=sc&&ls==='fin'&&sc.home>sc.away,aW=sc&&ls==='fin'&&sc.away>sc.home;
       const hSc=(ls==='live'||ls==='fin')&&sc?`<span class="bc-sc">${sc.home}</span>`:'';
       const aSc=(ls==='live'||ls==='fin')&&sc?`<span class="bc-sc">${sc.away}</span>`:'';
-      t1=`<div class="bc-tm${hW?' win':''}">${fl(m.home)}<span class="bc-nm">${m.home}</span>${hSc}</div>`;
-      t2=`<div class="bc-vs">vs</div><div class="bc-tm${aW?' win':''}">${fl(m.away)}<span class="bc-nm">${m.away}</span>${aSc}</div>`;
+      t1=`<div class="bc-tm${hW?' win':''}">​${fl(m.home)}<span class="bc-nm">${m.home}</span>${hSc}</div>`;
+      t2=`<div class="bc-vs">vs</div><div class="bc-tm${aW?' win':''}">​${fl(m.away)}<span class="bc-nm">${m.away}</span>${aSc}</div>`;
     }else{
       const p=m.slot.split(' vs ');
       t1=`<div class="bc-tm tbd"><span class="bc-nm">${p[0]||m.slot}</span></div>`;
@@ -653,7 +681,7 @@ function renderBracket(){
   }
   function bRound(ids,cls=''){
     const items=ids.map(byN);const paired=items.length>1;
-    return`<div class="b-round ${cls}">${items.map((m,i)=>`<div class="b-item ${paired?(i%2===0?'top':'bot'):''}">${bCard(m)}</div>`).join('')}</div>`;
+    return`<div class="b-round ${cls}">${items.map((m,i)=>`<div class="b-item ${paired?(i%2===0?'top':'bot'):''}">​${bCard(m)}</div>`).join('')}</div>`;
   }
   const fin=byN(104),trd=byN(103);
   const html=`
