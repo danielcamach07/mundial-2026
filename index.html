@@ -521,7 +521,7 @@ function openDetail(n){
   let sHtml='';
   if(sc&&sc.scorers&&sc.scorers.length){const rows=sc.scorers.map(s=>`<div class="sg"><span class="smin">${s.minute}</span>⚽ <b>${s.name}</b>${s.team?`<span class="steam">${fl(s.team)} ${s.team}</span>`:''}</div>`).join('');sHtml=`<div class="m-scorers"><div class="sl">Goles</div>${rows}</div>`;}
   
-  modalEl.innerHTML=`<div class="m-head"><div class="x" id="closeX">✕</div><div class="m-stage">${st.label}${m.group?' · GRUPO '+m.group:''} · PARTIDO ${m.n}</div><div class="m-score">${side(m.home,m.tbd)}<div class="m-mid">${mid}<div class="mv">${m.tbd?'':'VS'}</div>${min}<span class="mst ${ls==='live'?'live':''}">${stTxt}</span></div>${side(m.away,m.tbd)}</div></div>${sHtml}<div class="m-body"><div class="brow"><div class="k">Fecha</div><div class="v">${dateLong.charAt(0).toUpperCase()+dateLong.slice(1)}</div></div><div class="brow"><div class="k">Hora</div><div class="v">${timeStr}</div></div><div class="brow"><div class="k">Sede</div><div class="v">${m.venue}<span class="sm">${m.city} ${HOST[m.cc]}</span></div></div>${m.tbd?`<div class="brow"><div class="k">Cruce</div><div class="v" style="opacity:.7">${m.slot}</div></div>`:''}</div><div class="m-actions"><button class="btn vix" id="vixBtn">▶ VER EN VIX</button><button class="btn" id="gcalBtn">📅 GOOGLE CAL</button><button class="btn ghost" id="icsOneBtn">↓ .ICS</button></div>`;
+  modalEl.innerHTML=`<div class="m-head"><div class="x" id="closeX">✕</div><div class="m-stage">${st.label}${m.group?' · GRUPO '+m.group:''} · PARTIDO ${m.n}</div><div class="m-score">${side(m.home,m.tbd)}<div class="m-mid">${mid}<div class="mv">${m.tbd?'':'VS'}</div>${min}<span class="mst ${ls==='live'?'live':''}">  ${stTxt}</span></div>${side(m.away,m.tbd)}</div></div>${sHtml}<div class="m-body"><div class="brow"><div class="k">Fecha</div><div class="v">${dateLong.charAt(0).toUpperCase()+dateLong.slice(1)}</div></div><div class="brow"><div class="k">Hora</div><div class="v">${timeStr}</div></div><div class="brow"><div class="k">Sede</div><div class="v">${m.venue}<span class="sm">${m.city} ${HOST[m.cc]}</span></div></div>${m.tbd?`<div class="brow"><div class="k">Cruce</div><div class="v" style="opacity:.7">${m.slot}</div></div>`:''}</div><div class="m-actions"><button class="btn vix" id="vixBtn">▶ VER EN VIX</button><button class="btn" id="gcalBtn">📅 GOOGLE CAL</button><button class="btn ghost" id="icsOneBtn">↓ .ICS</button></div>`;
   scrim.classList.add('show');
   document.getElementById('closeX').onclick=closeDetail;
   document.getElementById('vixBtn').onclick=()=>window.open('https://www.primevideo.com/channel/5dd031d5-45ef-437c-8014-e670e79ef05c?jic=16%7CCgNhbGwSA2FsbA%3D%3D','_blank','noopener');
@@ -578,7 +578,9 @@ async function fetchResults(){
       updated++;
     }
     const t=new Intl.DateTimeFormat('es-MX',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:state.tz}).format(new Date());
-    setStatus(`ACTUALIZADO A LAS ${t} · ${updated} RESULTADO(S)`);render();if(activeTab==='groups')renderGroups();if(activeTab==='bracket')renderBracket();
+    setStatus(`ACTUALIZADO A LAS ${t} · ${updated} RESULTADO(S)`);
+    try{localStorage.setItem('wc26_scores',JSON.stringify(state.scores));}catch(e){}
+    render();if(activeTab==='groups')renderGroups();if(activeTab==='bracket')renderBracket();
   }catch(e){setStatus(`ERROR AL ACTUALIZAR: ${e.message}`,true);}finally{refreshBtn.disabled=false;}
 }
 refreshBtn.addEventListener('click',fetchResults);
@@ -666,8 +668,8 @@ function renderBracket(){
       const hW=sc&&ls==='fin'&&sc.home>sc.away,aW=sc&&ls==='fin'&&sc.away>sc.home;
       const hSc=(ls==='live'||ls==='fin')&&sc?`<span class="bc-sc">${sc.home}</span>`:'';
       const aSc=(ls==='live'||ls==='fin')&&sc?`<span class="bc-sc">${sc.away}</span>`:'';
-      t1=`<div class="bc-tm${hW?' win':''}}">${fl(m.home)}<span class="bc-nm">${m.home}</span>${hSc}</div>`;
-      t2=`<div class="bc-vs">vs</div><div class="bc-tm${aW?' win':''}">${fl(m.away)}<span class="bc-nm">${m.away}</span>${aSc}</div>`;
+      t1=`<div class="bc-tm${hW?' win':''}">  ${fl(m.home)}<span class="bc-nm">${m.home}</span>${hSc}</div>`;
+      t2=`<div class="bc-vs">vs</div><div class="bc-tm${aW?' win':''}">  ${fl(m.away)}<span class="bc-nm">${m.away}</span>${aSc}</div>`;
     }else{
       const p=m.slot.split(' vs ');
       t1=`<div class="bc-tm tbd"><span class="bc-nm">${p[0]||m.slot}</span></div>`;
@@ -677,7 +679,7 @@ function renderBracket(){
   }
   function bRound(ids,cls=''){
     const items=ids.map(byN);const paired=items.length>1;
-    return`<div class="b-round ${cls}">${items.map((m,i)=>`<div class="b-item ${paired?(i%2===0?'top':'bot'):''}}">${bCard(m)}</div>`).join('')}</div>`;
+    return`<div class="b-round ${cls}">${items.map((m,i)=>`<div class="b-item ${paired?(i%2===0?'top':'bot'):''}">  ${bCard(m)}</div>`).join('')}</div>`;
   }
   const fin=byN(104),trd=byN(103);
   const html=`
@@ -713,7 +715,10 @@ function renderBracket(){
   document.getElementById('bracket-content').querySelectorAll('.b-card').forEach(c=>c.addEventListener('click',()=>openDetail(+c.dataset.n)));
 }
 
+// Load cached scores instantly
+(function(){try{const c=localStorage.getItem('wc26_scores');if(c){const p=JSON.parse(c);Object.assign(state.scores,p);}}catch(e){}}());
 render();
+// Refresh in background
 if(MATCHES.some(m=>!m.tbd&&Date.now()>=m.date.getTime()-60000))fetchResults();
 </script>
 </body>
